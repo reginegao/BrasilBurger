@@ -1,8 +1,10 @@
 package models;
 
+import java.time.LocalDateTime;
 public class Commande {
     private int id;
     private int clientId;
+    private LocalDateTime dateCreation;  
     private String typeRetrait;
     private String adresseLivraison;
     private int zoneId;
@@ -11,15 +13,28 @@ public class Commande {
     private String statut;
 
     public Commande() {}
-
-    public Commande(int id, int clientId, String typeRetrait, String adresseLivraison, int zoneId, double total, boolean paye) {
+    public Commande(int id, int clientId, LocalDateTime dateCreation, String typeRetrait, String adresseLivraison, int zoneId, double total, boolean paye, String statut) {
         this.id = id;
         this.clientId = clientId;
+        this.dateCreation = dateCreation;
         this.typeRetrait = typeRetrait;
         this.adresseLivraison = adresseLivraison;
         this.zoneId = zoneId;
         this.total = total;
         this.paye = paye;
+        this.statut = statut;
+    }
+
+    public Commande(int id, int clientId, String typeRetrait, String adresseLivraison, int zoneId, double total, boolean paye) {
+        this.id = id;
+        this.clientId = clientId;
+        this.dateCreation = LocalDateTime.now();
+        this.typeRetrait = typeRetrait;
+        this.adresseLivraison = adresseLivraison;
+        this.zoneId = zoneId;
+        this.total = total;
+        this.paye = paye;
+        this.statut = "EN_COURS";
     }
 
     public int getId() { return id; }
@@ -27,6 +42,9 @@ public class Commande {
 
     public int getClientId() { return clientId; }
     public void setClientId(int clientId) { this.clientId = clientId; }
+
+    public LocalDateTime getDateCreation() { return dateCreation; }
+    public void setDateCreation(LocalDateTime dateCreation) { this.dateCreation = dateCreation; }
 
     public String getTypeRetrait() { return typeRetrait; }
     public void setTypeRetrait(String typeRetrait) { this.typeRetrait = typeRetrait; }

@@ -1,5 +1,4 @@
 package models;
-
 public class Menu {
     private int id;
     private String nom;

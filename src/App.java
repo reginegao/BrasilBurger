@@ -1,10 +1,12 @@
 import dao.BurgerDAO;
 import dao.UserDAO;
 import dao.ZoneDAO;
+import dao.PaiementDAO;
 import models.Burger;
 import models.Commande;
 import models.User;
 import models.Zone;
+import models.Paiement;
 import services.CommandeService;
 import java.util.List;
 import java.util.ArrayList;
@@ -25,7 +27,9 @@ public class App {
             System.out.println("2. Ajouter un burger");
             System.out.println("3. Faire une commande");
             System.out.println("4. Voir les commandes");
-            System.out.println("5. Quitter");
+            System.out.println("5. Changer le statut d’une commande");
+            System.out.println("6. Quitter");
+
             int choix = readInt(scanner, "Votre choix : ");
 
             switch (choix) {
@@ -44,9 +48,9 @@ public class App {
                     String imageUrl = readString(scanner, "URL de l'image : ");
                     Burger nb = new Burger(0, nom, prix, imageUrl);
                     if (burgerDAO.addBurger(nb)) {
-                        System.out.println("✅ Burger ajouté avec succès !");
+                        System.out.println("Burger ajouté avec succès !");
                     } else {
-                        System.out.println("❌ Erreur lors de l'ajout du burger.");
+                        System.out.println(" Erreur lors de l'ajout du burger.");
                     }
                     break;
 
@@ -57,13 +61,57 @@ public class App {
                 case 4:
                     System.out.println("\n--- LISTE DES COMMANDES ---");
                     for (Commande c : commandeService.listerCommandes()) {
-                        System.out.println("Commande #" + c.getId() + " | Client ID: " + c.getClientId() + " | Total: " + c.getTotal() + " FCFA | Payé: " + (c.isPaye() ? "Oui" : "Non") + " | Statut: " + c.getStatut());
+                        System.out.println(
+                            "Commande #" + c.getId() +
+                            " | Client ID: " + c.getClientId() +
+                            " | Total: " + (long)Math.round(c.getTotal()) + " FCFA" +
+                            " | Payé: " + (c.isPaye() ? "Oui" : "Non") +
+                            " | Statut: " + c.getStatut()
+                        );
+
+                        if ("LIVRAISON".equalsIgnoreCase(c.getTypeRetrait())) {
+                            System.out.println("   Type: Livraison | Adresse: " + c.getAdresseLivraison() + " | Zone ID: " + c.getZoneId());
+                        } else if ("RETRAIT".equalsIgnoreCase(c.getTypeRetrait())) {
+                            System.out.println("   Type: Retrait sur place");
+                        }
+
+                        if (c.isPaye()) {
+                            Paiement p = commandeService.getPaiementByCommandeId(c.getId());
+                            if (p != null) {
+                                System.out.println("   Paiement: " + p.getMontant() + " FCFA | Méthode: " + p.getMethode());
+                            }
+                        }
+
+                        java.util.List<Object[]> items = commandeService.listerItems(c.getId());
+                        if (items != null && !items.isEmpty()) {
+                            for (Object[] it : items) {
+                                String pType = it[0] != null ? (String) it[0] : "produit";
+                                int pId = (Integer) it[1];
+                                int qty = (Integer) it[2];
+                                double pu = (Double) it[3];
+                                String label = pType.toUpperCase();
+                                String extra = "";
+                                if ("burger".equalsIgnoreCase(pType)) {
+                                    Burger b = burgerDAO.getBurgerById(pId);
+                                    if (b != null) {
+                                        label = b.getNom();
+                                        extra = " (BURGER ID:" + pId + ")";
+                                    }
+                                }
+                                long subtotal = Math.round(pu * qty);
+                                System.out.println("   - " + label + extra + " x" + qty + " = " + subtotal + " FCFA");
+                            }
+                        }
                     }
                     break;
 
                 case 5:
-                    running = false;
+                    changerStatutCommande(scanner, commandeService);
+                    break;
+
+                case 6:
                     System.out.println("Au revoir !");
+                    running = false;
                     break;
 
                 default:
@@ -75,7 +123,6 @@ public class App {
     private static void faireCommande(Scanner scanner, BurgerDAO burgerDAO, UserDAO userDAO, ZoneDAO zoneDAO, CommandeService commandeService) {
         System.out.println("\n--- FAIRE UNE COMMANDE ---");
 
-        // Clients
         List<User> clients = userDAO.getAllUsers();
         int clientId = -1;
         if (clients.isEmpty()) {
@@ -129,7 +176,6 @@ public class App {
             }
         }
 
-        // Type commande
         String typeCmd = readString(scanner, "Type (LIVRAISON/RETRAIT) : ").toUpperCase();
         String adresse = null;
         int zoneId = 0;
@@ -165,7 +211,6 @@ public class App {
             }
         }
 
-        // Choix des produits
         System.out.println("\n=== CHOISIR LES PRODUITS ===");
         List<Burger> burgersMenu = burgerDAO.getAllBurgers();
         if (burgersMenu.isEmpty()) {
@@ -180,7 +225,7 @@ public class App {
         System.out.println("0. Terminer");
 
         double total = 0;
-        List<Object[]> items = new ArrayList<>(); // chaque item: {produitType, produitId, quantite}
+        List<Object[]> items = new ArrayList<>();
         while (true) {
             int idBurger = readInt(scanner, "Choisir un burger : ");
             if (idBurger == 0) break;
@@ -197,14 +242,47 @@ public class App {
         boolean paye = readBoolean(scanner, "Payé ? (o/n) : ");
 
         Commande commande = new Commande(0, clientId, typeCmd, adresse, zoneId, total, paye);
-        // Créer la commande et ses items dans une transaction
         if (commandeService.creerCommandeAvecItems(commande, items)) {
             System.out.println("Commande créée (ID: " + commande.getId() + ")");
-            if (!items.isEmpty()) {
-                System.out.println("Items ajoutés !");
+            if (!items.isEmpty()) System.out.println("Items ajoutés !");
+
+            if (paye) {
+                String methode = readString(scanner, "Méthode de paiement (WAVE / OM) : ");
+                Paiement paiement = new Paiement(0, commande.getId(), commande.getTotal(), methode);
+                PaiementDAO paiementDAO = new PaiementDAO();
+                if (paiementDAO.addPaiement(paiement)) {
+                    System.out.println("Paiement enregistré !");
+                } else {
+                    System.out.println("Échec enregistrement paiement.");
+                }
             }
         } else {
             System.out.println("Erreur lors de la création de la commande.");
+        }
+    }
+
+    private static void changerStatutCommande(Scanner scanner, CommandeService commandeService) {
+        System.out.println("\n--- CHANGER LE STATUT D’UNE COMMANDE ---");
+
+        int id = readInt(scanner, "ID de la commande : ");
+        String statut = readString(scanner, "Nouveau statut (EN_COURS / LIVREE / ANNULEE) : ").toUpperCase();
+
+        if (!statut.equals("EN_COURS") && !statut.equals("LIVREE") && !statut.equals("ANNULEE")) {
+            System.out.println("Statut invalide.");
+            return;
+        }
+
+        models.Commande c = commandeService.trouverCommande(id);
+        if (c == null) {
+            System.out.println(" Aucune commande trouvée avec l'ID : " + id);
+            return;
+        }
+        System.out.println("Commande trouvée — statut actuel : " + c.getStatut());
+
+        if (commandeService.mettreAJourStatut(id, statut)) {
+            System.out.println(" Statut mis à jour avec succès ! (" + c.getId() + ")");
+        } else {
+            System.out.println(" Échec de la mise à jour. Vérifiez les contraintes en base (FK, etc.).");
         }
     }
 
@@ -246,4 +324,3 @@ public class App {
         }
     }
 }
-

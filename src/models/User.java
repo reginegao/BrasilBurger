@@ -1,5 +1,8 @@
 package models;
 
+// Modèle User : représente un utilisateur (client / admin).
+// Contient les informations de contact et le rôle.
+
 public class User {
     private int id;
     private String nom;

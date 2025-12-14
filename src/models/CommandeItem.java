@@ -1,20 +1,21 @@
 package models;
-
 public class CommandeItem {
     private int id;
     private int commandeId;
-    private String type;
-    private int itemId;
+    private String produitType;    
+    private int produitId;         
     private int quantite;
+    private double prixUnitaire;  
 
     public CommandeItem() {}
 
-    public CommandeItem(int id, int commandeId, String type, int itemId, int quantite) {
+    public CommandeItem(int id, int commandeId, String produitType, int produitId, int quantite, double prixUnitaire) {
         this.id = id;
         this.commandeId = commandeId;
-        this.type = type;
-        this.itemId = itemId;
+        this.produitType = produitType;
+        this.produitId = produitId;
         this.quantite = quantite;
+        this.prixUnitaire = prixUnitaire;
     }
 
     public int getId() { return id; }
@@ -23,12 +24,15 @@ public class CommandeItem {
     public int getCommandeId() { return commandeId; }
     public void setCommandeId(int commandeId) { this.commandeId = commandeId; }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public String getProduitType() { return produitType; }
+    public void setProduitType(String produitType) { this.produitType = produitType; }
 
-    public int getItemId() { return itemId; }
-    public void setItemId(int itemId) { this.itemId = itemId; }
+    public int getProduitId() { return produitId; }
+    public void setProduitId(int produitId) { this.produitId = produitId; }
 
     public int getQuantite() { return quantite; }
     public void setQuantite(int quantite) { this.quantite = quantite; }
+
+    public double getPrixUnitaire() { return prixUnitaire; }
+    public void setPrixUnitaire(double prixUnitaire) { this.prixUnitaire = prixUnitaire; }
 }

@@ -10,81 +10,79 @@ import java.util.List;
 public class MenuDAO {
 
     public boolean addMenu(Menu menu) {
-        String sql = "INSERT INTO menu_ (nom, image_url) VALUES (?, ?)";
+        String sql = "INSERT INTO menu (nom, image_url) VALUES (?, ?)";
         try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            stmt.setString(1, menu.getNom());
-            stmt.setString(2, menu.getImageUrl());
+            ps.setString(1, menu.getNom());
+            ps.setString(2, menu.getImageUrl());
 
-            int rows = stmt.executeUpdate();
-            return rows > 0;
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) menu.setId(keys.getInt(1));
+                }
+                return true;
+            }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
+        return false;
     }
-
     public List<Menu> getAllMenus() {
         List<Menu> list = new ArrayList<>();
-        String sql = "SELECT * FROM menu_ WHERE archived = false";
-
+        String sql = "SELECT id, nom, image_url FROM menu WHERE archived = FALSE";
         try (Connection conn = Database.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Menu m = new Menu(
-                        rs.getInt("id"),
-                        rs.getString("nom"),
-                        rs.getString("image_url")
+                    rs.getInt("id"),
+                    rs.getString("nom"),
+                    rs.getString("image_url")
                 );
                 list.add(m);
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
-
         return list;
     }
 
-    public Menu getMenuById(int id) {
-        String sql = "SELECT * FROM menu_ WHERE id = ? AND archived = false";
+    public boolean updateMenu(Menu menu) {
+        String sql = "UPDATE menu SET nom = ?, image_url = ? WHERE id = ?";
         try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
+            ps.setString(1, menu.getNom());
+            ps.setString(2, menu.getImageUrl());
+            ps.setInt(3, menu.getId());
 
-            if (rs.next()) {
-                return new Menu(
-                        rs.getInt("id"),
-                        rs.getString("nom"),
-                        rs.getString("image_url")
-                );
-            }
+            return ps.executeUpdate() > 0;
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
         }
+    }
+    public boolean deleteMenu(int id) {
+        String sql = "UPDATE menu SET archived = TRUE WHERE id = ?";
+        try (Connection conn = Database.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        return null;
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
     }
 
     public boolean archiveMenu(int id) {
-        String sql = "UPDATE menu_ SET archived = true WHERE id = ?";
-        try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, id);
-            int rows = stmt.executeUpdate();
-            return rows > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return deleteMenu(id);
     }
 }

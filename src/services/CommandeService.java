@@ -2,6 +2,7 @@ package services;
 
 import config.Database;
 import dao.CommandeDAO;
+import dao.PaiementDAO;
 import models.Commande;
 
 import java.sql.Connection;
@@ -17,8 +18,14 @@ public class CommandeService {
         this.commandeDAO = new CommandeDAO();
     }
 
+    // NOTE POUR DÉBUTANT :
+    // Cette classe contient la logique simple liée aux commandes.
+    // - Elle délègue l'accès à la base au `CommandeDAO`.
+    // - Les méthodes sont volontairement claires et linéaires.
+
     // Créer une commande (délégué au DAO)
     public boolean creerCommande(Commande commande) {
+        // Appelle le DAO pour insérer la commande en base
         return commandeDAO.addCommande(commande);
     }
 
@@ -27,7 +34,26 @@ public class CommandeService {
         return commandeDAO.getAllCommandes();
     }
 
-    // Trouver une commande par ID
+    // Retourne List<Object[]> = {produitType:String|null, produitId:Integer, quantite:Integer, prixUnitaire:Double}
+    public java.util.List<Object[]> listerItems(int commandeId) {
+        java.util.List<Object[]> items = commandeDAO.getItemsByCommandeId(commandeId);
+        dao.BurgerDAO burgerDAO = new dao.BurgerDAO();
+        for (Object[] row : items) {
+            String pType = (String) row[0];
+            Integer pId = (Integer) row[1];
+            Double pu = (Double) row[3];
+            if ((pu == null || pu.doubleValue() == 0) && "burger".equalsIgnoreCase(pType)) {
+                try {
+                    models.Burger b = burgerDAO.getBurgerById(pId.intValue());
+                    if (b != null) row[3] = Double.valueOf(b.getPrix());
+                } catch (Exception ignore) {}
+            }
+        }
+        return items;
+    }
+
+    // Méthodes utilitaires courtes pour trouver et mettre à jour le statut
+
     public Commande trouverCommande(int id) {
         List<Commande> commandes = commandeDAO.getAllCommandes();
         for (Commande c : commandes) {
@@ -36,7 +62,6 @@ public class CommandeService {
         return null;
     }
 
-    // Mettre à jour une commande (statut notamment)
     public boolean mettreAJourStatut(int id, String statut) {
         Commande commande = trouverCommande(id);
         if (commande != null) {
@@ -46,7 +71,6 @@ public class CommandeService {
         return false;
     }
 
-    // Ajouter un item à une commande
     public void ajouterItem(int commandeId, int burgerId, int quantite) {
         String sql = "INSERT INTO commande_item (commande_id, item_id, quantite) VALUES (?, ?, ?)";
         try (Connection con = Database.getConnection();
@@ -65,21 +89,16 @@ public class CommandeService {
     // items: List of Object[]{ String produitType, Integer produitId, Integer quantite }
     public boolean creerCommandeAvecItems(models.Commande commande, java.util.List<Object[]> items) {
         String insertItemSql = "INSERT INTO commande_item (commande_id, item_id, quantite) VALUES (?, ?, ?)";
-                String insertItemAltSql = "INSERT INTO commande_item (commande_id, burger_id, quantite) VALUES (?, ?, ?)";
-                String insertProduitSql = "INSERT INTO commande_item (commande_id, produit_type, produit_id, quantite, prix_unitaire) VALUES (?, ?, ?, ?, ?)";
+        String insertItemAltSql = "INSERT INTO commande_item (commande_id, burger_id, quantite) VALUES (?, ?, ?)";
+        String insertProduitSql = "INSERT INTO commande_item (commande_id, produit_type, produit_id, quantite, prix_unitaire) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = Database.getConnection()) {
             try {
                 conn.setAutoCommit(false);
 
-                // Insérer la commande en utilisant la connexion courante
                 boolean created = commandeDAO.addCommande(conn, commande);
-                if (!created) {
-                    conn.rollback();
-                    return false;
-                }
+                if (!created) { conn.rollback(); return false; }
 
-                // Détecter la colonne existante dans la table commande_item via les métadonnées
                 String chosenSql = insertItemSql;
                 java.sql.DatabaseMetaData md = conn.getMetaData();
                 boolean hasItemId = false;
@@ -89,28 +108,16 @@ public class CommandeService {
                 if (!hasItemId) {
                     boolean hasBurgerId = false;
                     try (java.sql.ResultSet cols2 = md.getColumns(null, null, "commande_item", "burger_id")) {
-                        if (cols2.next()) {
-                            hasBurgerId = true;
-                            chosenSql = insertItemAltSql;
-                        }
+                        if (cols2.next()) { hasBurgerId = true; chosenSql = insertItemAltSql; }
                     }
                     if (!hasBurgerId) {
-                        // tester 'produit_id'
                         try (java.sql.ResultSet cols3 = md.getColumns(null, null, "commande_item", "produit_id")) {
-                            if (cols3.next()) {
-                                chosenSql = insertProduitSql;
-                                hasBurgerId = true; // réutiliser flag pour indiquer qu'on a trouvé une colonne utilisable
-                            }
+                            if (cols3.next()) { chosenSql = insertProduitSql; hasBurgerId = true; }
                         }
                     }
-                    if (!hasBurgerId) {
-                        conn.rollback();
-                        System.out.println("La table 'commande_item' ne contient pas de colonne utilisable (item_id, burger_id, produit_id).");
-                        return false;
-                    }
+                    if (!hasBurgerId) { conn.rollback(); System.out.println("La table 'commande_item' ne contient pas de colonne utilisable (item_id, burger_id, produit_id)."); return false; }
                 }
 
-                // si la table utilise produit_type/produit_id, ajouter le type et le prix unitaire
                 dao.BurgerDAO burgerDAO = new dao.BurgerDAO();
                 try (PreparedStatement ps = conn.prepareStatement(chosenSql)) {
                     for (Object[] it : items) {
@@ -119,12 +126,7 @@ public class CommandeService {
                         int pQty = (Integer) it[2];
                         if (chosenSql.equals(insertProduitSql)) {
                             double prix = 0;
-                            try {
-                                if ("burger".equalsIgnoreCase(pType)) {
-                                    models.Burger b = burgerDAO.getBurgerById(pId);
-                                    if (b != null) prix = b.getPrix();
-                                }
-                            } catch (Exception ignore) {}
+                            try { if ("burger".equalsIgnoreCase(pType)) { models.Burger b = burgerDAO.getBurgerById(pId); if (b != null) prix = b.getPrix(); } } catch (Exception ignore) {}
                             ps.setInt(1, commande.getId());
                             ps.setString(2, pType);
                             ps.setInt(3, pId);
@@ -152,5 +154,10 @@ public class CommandeService {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public models.Paiement getPaiementByCommandeId(int commandeId) {
+        dao.PaiementDAO pdao = new dao.PaiementDAO();
+        return pdao.getPaiementByCommande(commandeId);
     }
 }

@@ -9,106 +9,107 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BurgerDAO {
-
     public boolean addBurger(Burger burger) {
         String sql = "INSERT INTO burger (nom, prix, image_url) VALUES (?, ?, ?)";
-
         try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            stmt.setString(1, burger.getNom());
-            stmt.setDouble(2, burger.getPrix());
-            stmt.setString(3, burger.getImageUrl());
+            ps.setString(1, burger.getNom());
+            ps.setDouble(2, burger.getPrix());
+            ps.setString(3, burger.getImageUrl());
 
-            return stmt.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public List<Burger> getAllBurgers() {
-        List<Burger> burgers = new ArrayList<>();
-        String sql = "SELECT * FROM burger";
-
-        try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                Burger b = new Burger(
-                        rs.getInt("id"),
-                        rs.getString("nom"),
-                        rs.getDouble("prix"),
-                        rs.getString("image_url")
-                );
-                burgers.add(b);
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        burger.setId(keys.getInt(1));
+                    }
+                }
+                return true;
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
-
-        return burgers;
+        return false;
     }
-
-    public boolean updateBurger(Burger burger) {
-        String sql = "UPDATE burger SET nom = ?, prix = ?, image_url = ? WHERE id = ?";
+    public List<Burger> getAllBurgers() {
+        List<Burger> result = new ArrayList<>();
+        String sql = "SELECT id, nom, prix, image_url FROM burger";
 
         try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
-            stmt.setString(1, burger.getNom());
-            stmt.setDouble(2, burger.getPrix());
-            stmt.setString(3, burger.getImageUrl());
-            stmt.setInt(4, burger.getId());
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String nom = rs.getString("nom");
+                double prix = rs.getDouble("prix");
+                String image = rs.getString("image_url");
 
-            return stmt.executeUpdate() > 0;
+                Burger b = new Burger(id, nom, prix, image);
+                result.add(b);
+            }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return result;
+    }
+    public boolean updateBurger(Burger burger) {
+        String sql = "UPDATE burger SET nom = ?, prix = ?, image_url = ? WHERE id = ?";
+        try (Connection conn = Database.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, burger.getNom());
+            ps.setDouble(2, burger.getPrix());
+            ps.setString(3, burger.getImageUrl());
+            ps.setInt(4, burger.getId());
+
+            int rows = ps.executeUpdate();
+            return rows > 0;
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
             return false;
         }
     }
 
     public boolean deleteBurger(int id) {
         String sql = "DELETE FROM burger WHERE id = ?";
-
         try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
+            ps.setInt(1, id);
+            int rows = ps.executeUpdate();
+            return rows > 0;
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
             return false;
         }
     }
-
     public Burger getBurgerById(int id) {
-        String sql = "SELECT * FROM burger WHERE id = ?";
-
+        String sql = "SELECT id, nom, prix, image_url FROM burger WHERE id = ?";
         try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return new Burger(
-                        rs.getInt("id"),
-                        rs.getString("nom"),
-                        rs.getDouble("prix"),
-                        rs.getString("image_url")
-                );
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Burger(
+                            rs.getInt("id"),
+                            rs.getString("nom"),
+                            rs.getDouble("prix"),
+                            rs.getString("image_url")
+                    );
+                }
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
-
         return null;
     }
 }

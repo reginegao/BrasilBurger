@@ -1,5 +1,4 @@
 package models;
-
 public class Burger {
     private int id;
     private String nom;

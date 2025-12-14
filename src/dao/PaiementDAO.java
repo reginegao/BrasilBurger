@@ -8,57 +8,57 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PaiementDAO {
-
     public boolean addPaiement(Paiement paiement) {
         String sql = "INSERT INTO paiement (commande_id, montant, methode) VALUES (?, ?, ?)";
         try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            stmt.setInt(1, paiement.getCommandeId());
-            stmt.setDouble(2, paiement.getMontant());
-            stmt.setString(3, paiement.getMethode());
+            ps.setInt(1, paiement.getCommandeId());
+            ps.setDouble(2, paiement.getMontant());
+            ps.setString(3, paiement.getMethode());
 
-            int rows = stmt.executeUpdate();
-            return rows > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public Paiement getPaiementByCommande(int commandeId) {
-        String sql = "SELECT * FROM paiement WHERE commande_id = ?";
-        try (Connection conn = Database.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, commandeId);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return new Paiement(
-                        rs.getInt("id"),
-                        rs.getInt("commande_id"),
-                        rs.getTimestamp("date_paiement"),
-                        rs.getDouble("montant"),
-                        rs.getString("methode")
-                );
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) paiement.setId(keys.getInt(1));
+                }
+                return true;
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
+        return false;
+    }
+    public Paiement getPaiementByCommande(int commandeId) {
+        String sql = "SELECT id, commande_id, date_paiement, montant, methode FROM paiement WHERE commande_id = ?";
+        try (Connection conn = Database.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
+            ps.setInt(1, commandeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Paiement(
+                            rs.getInt("id"),
+                            rs.getInt("commande_id"),
+                            rs.getTimestamp("date_paiement"),
+                            rs.getDouble("montant"),
+                            rs.getString("methode")
+                    );
+                }
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
         return null;
     }
-
     public List<Paiement> getAllPaiements() {
-        List<Paiement> paiements = new ArrayList<>();
-        String sql = "SELECT * FROM paiement";
-
+        List<Paiement> list = new ArrayList<>();
+        String sql = "SELECT id, commande_id, date_paiement, montant, methode FROM paiement";
         try (Connection conn = Database.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Paiement p = new Paiement(
@@ -68,13 +68,12 @@ public class PaiementDAO {
                         rs.getDouble("montant"),
                         rs.getString("methode")
                 );
-                paiements.add(p);
+                list.add(p);
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
-
-        return paiements;
+        return list;
     }
 }

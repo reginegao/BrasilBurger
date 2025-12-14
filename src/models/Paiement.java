@@ -1,7 +1,6 @@
 package models;
 
 import java.sql.Timestamp;
-
 public class Paiement {
     private int id;
     private int commandeId;
