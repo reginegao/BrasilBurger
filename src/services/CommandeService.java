@@ -98,6 +98,12 @@ public class CommandeService {
 
                 boolean created = commandeDAO.addCommande(conn, commande);
                 if (!created) { conn.rollback(); return false; }
+                // Protection: s'assurer que l'ID de la commande a bien été généré
+                if (commande.getId() <= 0) {
+                    conn.rollback();
+                    System.out.println("Erreur: l'ID de la commande n'a pas été généré par la base.");
+                    return false;
+                }
 
                 String chosenSql = insertItemSql;
                 java.sql.DatabaseMetaData md = conn.getMetaData();
@@ -117,6 +123,9 @@ public class CommandeService {
                     }
                     if (!hasBurgerId) { conn.rollback(); System.out.println("La table 'commande_item' ne contient pas de colonne utilisable (item_id, burger_id, produit_id)."); return false; }
                 }
+
+                // Sécuriser la liste d'items (éviter NullPointerException)
+                if (items == null) items = new java.util.ArrayList<>();
 
                 dao.BurgerDAO burgerDAO = new dao.BurgerDAO();
                 try (PreparedStatement ps = conn.prepareStatement(chosenSql)) {
