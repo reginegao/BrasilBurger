@@ -1,0 +1,38 @@
+@model BrasilBurger.CSharp.Models.Commande
+@{
+    ViewData["Title"] = "Détails de la commande";
+}
+
+<h2>Commande #@Model.Id</h2>
+<p>Client ID : @Model.ClientId</p>
+<p>Total : @Model.Total</p>
+<p>Payé : @(Model.Paye ? "Oui" : "Non")</p>
+<p>Statut : @Model.Statut</p>
+<p>Type : @Model.TypeRetrait</p>
+@if(Model.TypeRetrait == "LIVRAISON")
+{
+    <p>Adresse : @Model.AdresseLivraison | Zone : @Model.ZoneId</p>
+}
+
+<h3>Items</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Type Produit</th>
+            <th>Produit ID</th>
+            <th>Quantité</th>
+            <th>Prix Unitaire</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var i in Model.Items)
+        {
+            <tr>
+                <td>@i.TypeProduit</td>
+                <td>@i.ProduitId</td>
+                <td>@i.Quantite</td>
+                <td>@i.PrixUnitaire</td>
+            </tr>
+        }
+    </tbody>
+</table>

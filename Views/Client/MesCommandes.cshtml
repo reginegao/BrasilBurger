@@ -1,0 +1,39 @@
+@model List<BrasilBurger.CSharp.Models.Commande>
+@{
+    ViewData["Title"] = "Mes Commandes";
+}
+
+<h1>Mes Commandes</h1>
+
+@if (Model.Count == 0)
+{
+    <p>Vous n'avez aucune commande.</p>
+}
+else
+{
+    <table border="1" cellpadding="5">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Total</th>
+                <th>Payé</th>
+                <th>Statut</th>
+                <th>Type</th>
+                <th>Détails</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td>@c.Id</td>
+                    <td>@c.Total FCFA</td>
+                    <td>@(c.Paye ? "Oui" : "Non")</td>
+                    <td>@c.Statut</td>
+                    <td>@c.TypeRetrait</td>
+                    <td><a href="/Commande/Details/@c.Id">Voir</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,9 @@
+@model BrasilBurger.CSharp.Models.Zone
+@{
+    ViewData["Title"] = "Détails de la zone";
+}
+
+<h2>@Model.Nom</h2>
+<p>Prix livraison : @Model.PrixLivraison FCFA</p>
+
+<p><a href="/Zone/Edit/@Model.Id">Modifier</a> | <a href="/Zone">Retour à la liste</a></p>

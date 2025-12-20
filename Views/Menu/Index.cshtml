@@ -1,0 +1,31 @@
+@model List<BrasilBurger.CSharp.Models.Menu>
+@{
+    ViewData["Title"] = "Liste des Menus";
+}
+
+<h2>Menus disponibles</h2>
+
+<p><a href="/Menu/Create">Créer un nouveau menu</a></p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Prix</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var menu in Model)
+        {
+            <tr>
+                <td>@menu.Nom</td>
+                <td>@menu.Prix</td>
+                <td>
+                    <a href="/Menu/Details/@menu.Id">Voir</a> |
+                    <a href="/Menu/Edit/@menu.Id">Modifier</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

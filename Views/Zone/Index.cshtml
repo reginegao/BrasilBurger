@@ -1,0 +1,31 @@
+@model List<BrasilBurger.CSharp.Models.Zone>
+@{
+    ViewData["Title"] = "Liste des Zones";
+}
+
+<h2>Zones de livraison</h2>
+
+<p><a href="/Zone/Create">Ajouter une zone</a></p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Prix Livraison</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var z in Model)
+        {
+            <tr>
+                <td>@z.Nom</td>
+                <td>@z.PrixLivraison</td>
+                <td>
+                    <a href="/Zone/Details/@z.Id">Voir</a> |
+                    <a href="/Zone/Edit/@z.Id">Modifier</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

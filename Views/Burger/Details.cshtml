@@ -1,0 +1,12 @@
+@model BrasilBurger.CSharp.Models.Burger
+@{
+    ViewData["Title"] = "Détails du Burger";
+}
+
+<h1>Détails du Burger</h1>
+
+<p><strong>Nom :</strong> @Model.Nom</p>
+<p><strong>Prix :</strong> @Model.Prix FCFA</p>
+<p><strong>Image :</strong> <img src="@Model.ImageUrl" width="150" /></p>
+
+<a href="/Burger/Index">Retour à la liste</a>

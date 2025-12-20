@@ -1,0 +1,27 @@
+@model BrasilBurger.CSharp.Models.User
+@{
+    ViewData["Title"] = "Créer un compte";
+}
+
+<h1>Créer un compte Client</h1>
+
+<form method="post">
+    <label>Nom :</label>
+    <input type="text" name="Nom" required />
+    <br/>
+    <label>Prénom :</label>
+    <input type="text" name="Prenom" required />
+    <br/>
+    <label>Téléphone :</label>
+    <input type="text" name="Telephone" required />
+    <br/>
+    <label>Email :</label>
+    <input type="email" name="Email" required />
+    <br/>
+    <label>Mot de passe :</label>
+    <input type="password" name="MotDePasse" required />
+    <br/>
+    <button type="submit">Créer</button>
+</form>
+
+<p>Déjà un compte ? <a href="/Client/Login">Se connecter</a></p>

@@ -1,0 +1,31 @@
+@model List<BrasilBurger.CSharp.Models.Burger>
+@{
+    ViewData["Title"] = "Liste des Burgers";
+}
+
+<h1>Liste des Burgers</h1>
+<a href="/Burger/Create">Ajouter un Burger</a>
+<table border="1" cellpadding="5">
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Prix</th>
+            <th>Image</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var b in Model)
+        {
+            <tr>
+                <td>@b.Nom</td>
+                <td>@b.Prix</td>
+                <td><img src="@b.ImageUrl" width="50" /></td>
+                <td>
+                    <a href="/Burger/Details/@b.Id">Voir</a> |
+                    <a href="/Burger/Edit/@b.Id">Modifier</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

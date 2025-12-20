@@ -1,0 +1,31 @@
+@model List<BrasilBurger.CSharp.Models.Complement>
+@{
+    ViewData["Title"] = "Liste des Compléments";
+}
+
+<h2>Compléments disponibles</h2>
+
+<p><a href="/Complement/Create">Ajouter un complément</a></p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Prix</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var comp in Model)
+        {
+            <tr>
+                <td>@comp.Nom</td>
+                <td>@comp.Prix</td>
+                <td>
+                    <a href="/Complement/Details/@comp.Id">Voir</a> |
+                    <a href="/Complement/Edit/@comp.Id">Modifier</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

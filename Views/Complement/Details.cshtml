@@ -1,0 +1,10 @@
+@model BrasilBurger.CSharp.Models.Complement
+@{
+    ViewData["Title"] = "Détails du complément";
+}
+
+<h2>@Model.Nom</h2>
+<p>Prix : @Model.Prix FCFA</p>
+<p>Image : @Model.ImageUrl</p>
+
+<p><a href="/Complement/Edit/@Model.Id">Modifier</a> | <a href="/Complement">Retour à la liste</a></p>

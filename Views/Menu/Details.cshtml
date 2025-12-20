@@ -1,0 +1,17 @@
+@model BrasilBurger.CSharp.Models.Menu
+@{
+    ViewData["Title"] = "Détails du Menu";
+}
+
+<h2>@Model.Nom</h2>
+
+<p>Prix : @Model.Prix FCFA</p>
+<p>Éléments :</p>
+<ul>
+    @foreach(var item in Model.Elements)
+    {
+        <li>@item</li>
+    }
+</ul>
+
+<p><a href="/Menu/Edit/@Model.Id">Modifier</a> | <a href="/Menu">Retour à la liste</a></p>

@@ -1,0 +1,36 @@
+@model List<BrasilBurger.CSharp.Models.Commande>
+@{
+    ViewData["Title"] = "Liste des commandes";
+}
+
+<h2>Commandes</h2>
+<p><a href="/Commande/Create">Créer une commande</a></p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Client ID</th>
+            <th>Total</th>
+            <th>Payé</th>
+            <th>Statut</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var c in Model)
+        {
+            <tr>
+                <td>@c.Id</td>
+                <td>@c.ClientId</td>
+                <td>@c.Total</td>
+                <td>@(c.Paye ? "Oui" : "Non")</td>
+                <td>@c.Statut</td>
+                <td>
+                    <a href="/Commande/Details/@c.Id">Voir</a> |
+                    <a href="/Commande/Edit/@c.Id">Modifier</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,32 @@
+@model List<BrasilBurger.CSharp.Models.Paiement>
+@{
+    ViewData["Title"] = "Liste des paiements";
+}
+
+<h2>Paiements</h2>
+
+<p><a href="/Paiement/Create">Ajouter un paiement</a></p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Commande ID</th>
+            <th>Montant</th>
+            <th>Méthode</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var p in Model)
+        {
+            <tr>
+                <td>@p.CommandeId</td>
+                <td>@p.Montant</td>
+                <td>@p.Methode</td>
+                <td>
+                    <a href="/Paiement/Details/@p.Id">Voir</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
