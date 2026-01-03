@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du Burger{% endblock %}
+
+{% block body %}
+    <h1>{{ burger.name }}</h1>
+
+    <p><strong>Description :</strong> {{ burger.description }}</p>
+    <p><strong>Prix :</strong> {{ burger.price }} </p>
+
+    {% if burger.image %}
+        <p><img src="{{ burger.image }}" alt="{{ burger.name }}" width="200"></p>
+    {% else %}
+        <p>Pas d'image disponible</p>
+    {% endif %}
+
+    <a class="btn btn-secondary" href="{{ path('app_burger_index') }}">Retour à la liste</a>
+    <a class="btn btn-warning" href="{{ path('app_burger_edit', {'id': burger.id}) }}">Modifier</a>
+{% endblock %}

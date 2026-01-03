@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Burger index{% endblock %}
+
+{% block body %}
+    <h1>Liste des Burgers</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nom</th>
+                <th>Description</th>
+                <th>Prix</th>
+                <th>Image</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for burger in burgers %}
+            <tr>
+                <td>{{ burger.id }}</td>
+                <td>{{ burger.name }}</td>
+                <td>{{ burger.description }}</td>
+                <td>{{ burger.price }}</td>
+                <td>
+                    {% if burger.image %}
+                        <img src="{{ burger.image }}" alt="{{ burger.name }}" width="120">
+                    {% else %}
+                        Pas d'image
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ path('app_burger_show', {'id': burger.id}) }}">Voir</a>
+                    <a href="{{ path('app_burger_edit', {'id': burger.id}) }}">Modifier</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">Aucun burger trouvé</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_burger_new') }}" class="btn btn-primary">Créer un nouveau burger</a>
+{% endblock %}

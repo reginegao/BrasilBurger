@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Compléments{% endblock %}
+
+{% block body %}
+<h1>Liste des Compléments</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nom</th>
+            <th>Prix</th>
+            <th>Image</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for complement in complements %}
+        <tr>
+            <td>{{ complement.id }}</td>
+            <td>{{ complement.name }}</td>
+            <td>{{ complement.price }}</td>
+            <td>
+                {% if complement.image %}
+                    <img src="{{ complement.image }}" width="100">
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ path('app_complement_show', {'id': complement.id}) }}">Voir</a>
+                <a href="{{ path('app_complement_edit', {'id': complement.id}) }}">Modifier</a>
+            </td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="5">Aucun complément trouvé</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<a href="{{ path('app_complement_new') }}">Créer un nouveau complément</a>
+{% endblock %}

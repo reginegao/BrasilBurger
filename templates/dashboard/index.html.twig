@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+<h1>Bienvenue sur le Dashboard ! 🎉</h1>
+
+<div style="margin-top: 20px;">
+    <a href="{{ path('app_burger_index') }}" style="margin-right: 10px; padding: 10px; background-color: #ff6666; color: white; text-decoration: none; border-radius: 5px;">
+        Voir les Burgers
+    </a>
+
+    <a href="{{ path('app_menu_index') }}" style="margin-right: 10px; padding: 10px; background-color: #66b3ff; color: white; text-decoration: none; border-radius: 5px;">
+        Voir les Menus
+    </a>
+
+    <a href="{{ path('app_burger_new') }}" style="margin-right: 10px; padding: 10px; background-color: #99ff66; color: white; text-decoration: none; border-radius: 5px;">
+        Ajouter un Burger
+    </a>
+
+    <a href="{{ path('app_menu_new') }}" style="margin-right: 10px; padding: 10px; background-color: #ffcc66; color: white; text-decoration: none; border-radius: 5px;">
+        Ajouter un Menu
+    </a>
+</div>
+{% endblock %}
